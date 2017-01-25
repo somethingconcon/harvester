@@ -145,10 +145,19 @@
     org="org.joda" name="joda-convert" rev="1.8.1" conf="compile-&gt;default(compile)">
 </dependency>
     <dependency 
+    org="org.scalaz" name="scalaz-core_2.11" rev="7.2.8" conf="compile-&gt;default(compile)">
+</dependency>
+    <dependency 
     org="org.scalamock" name="scalamock-scalatest-support_2.11" rev="3.2.2" conf="test-&gt;default(compile)">
 </dependency>
     <dependency 
     org="org.scalatest" name="scalatest_2.11" rev="2.2.6" conf="test-&gt;default(compile)">
+</dependency>
+    <dependency 
+    org="com.milessabin" name="si2712fix-plugin_2.11.8" rev="1.2.0" conf="plugin-&gt;default(compile)">
+</dependency>
+    <dependency 
+    org="org.spire-math" name="kind-projector_2.11" rev="0.8.0" conf="plugin-&gt;default(compile)">
 </dependency>
   </dependencies>
 </ivy-module>

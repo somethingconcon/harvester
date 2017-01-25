@@ -71,7 +71,11 @@ lazy val root = (project in file(".")).settings(
     "joda-time"     % "joda-time"    % "2.9.2",
     "org.joda"      % "joda-convert" % "1.8.1",
     "org.scalaz"   %% "scalaz-core"  % "7.2.8",
+    
     // get me some shapeless
     // Test Resources
     "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test",
     "org.scalatest" %% "scalatest"                   % "2.2.6" % "test"))
+
+addCompilerPlugin("com.milessabin" % "si2712fix-plugin" % "1.2.0" cross CrossVersion.full)
+addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.8.0")
