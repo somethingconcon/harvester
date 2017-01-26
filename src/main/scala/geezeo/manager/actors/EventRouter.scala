@@ -104,18 +104,17 @@ object EventRouter extends Routing {
     Props(new EventRouter)
   }
   
-  // Events
   trait HEvent {
     val at  : DateTime
     val uuid: String
-  } // extends RoutingEvent
+  }
 
   // HLifeCycleEvent
   // Once a Harvest has been kicked off (the scheduler submits the job)
   // Enqueue -> Finished/Failed persist events track timeouts
   trait HLifeCycleEvent extends HEvent {
     val harvest: Harvest
-    val uuid   : String  = harvest.id
+    lazy val uuid = harvest.id
   }
   case class HFailed  (at: DateTime, harvest: Harvest) extends HLifeCycleEvent
   case class HFinished(at: DateTime, harvest: Harvest) extends HLifeCycleEvent

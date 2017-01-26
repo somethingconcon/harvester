@@ -2,26 +2,35 @@ package object harvester {
   
   import 
     akka.actor.{
+      ActorContext,
       ActorSystem,
       Props
     },
     akka.event.{
       Logging,
       LoggingAdapter
+    },
+    org.joda.time.format.DateTimeFormat,
+    org.joda.time.{
+      DateTime,
+      Instant
     }
 
+  val dateTimeFmt = DateTimeFormat.forPattern("dd-M-yyyy;H:m:s");
+
+  def fmtDateTime(dt: DateTime) = {
+    dt.toString(dateTimeFmt)
+  }
   // where should this go?
-  def getActorRef(props: Props, name: String)(implicit ac: ActorSystem) = {
-    ac.actorOf(props, s"${name} - ${nowDateTime}")
+  def getActorRef(props: Props, name: String)(implicit context: ActorContext) = {
+    context.actorOf(props, name)
   }
   
   def nowInstant = {
-    import org.joda.time.Instant
     new Instant()
   }
 
   def nowDateTime = {
-    import org.joda.time.DateTime
     new DateTime()
   }
 
