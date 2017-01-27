@@ -24,14 +24,13 @@ class Router(implicit as: ActorSystem) extends Actor with ActorLogging with Rout
   
   val children = mutable.Map[RoutingType, ActorRef]()
 
-  def getChild(t: RoutingType) = children.get(t)
+  def getRouter(t: RoutingType) = children.get(t)
   
   override def preStart(): Unit = {
-    children += (EventRouting()  -> getActorRef(EventRouter.props,   s"HEventRouter-${fmtDateTime(nowDateTime)}"  ))
-    children += (CommandRouting()-> getActorRef(CommandRouter.props, s"HCommandRouter-${fmtDateTime(nowDateTime)}"))
+    children += (EventRouting()  -> getActorRef(EventRouter.props,   s"EventRouter-${fmtDateTime(nowDateTime)}"  ))
+    children += (CommandRouting()-> getActorRef(CommandRouter.props, s"CommandRouter-${fmtDateTime(nowDateTime)}"))
   }
 
-  // define supervision for RoutingManager children
   /** 
     TODO
     supervision for the individual routers.
@@ -42,14 +41,10 @@ class Router(implicit as: ActorSystem) extends Actor with ActorLogging with Rout
 
   def receive = {
     case command: HCommand => {
-      getChild(CommandRouting()).map {
-        case child: ActorRef => child ! command
-      }
+      getRouter(CommandRouting()).map { commander => commander ! command }
     }
     case event: HEvent => {
-      getChild(EventRouting()).map {
-        case child: ActorRef => child ! event
-      }
+      getRouter(EventRouting()).map { eventer => eventer ! event }
     }
   }
 }
@@ -67,8 +62,7 @@ object Router {
 
   trait RoutingType
   case class CommandRouting() extends RoutingType
-  case class EventRouting() extends RoutingType
-
+  case class EventRouting()   extends RoutingType
 
 }
 

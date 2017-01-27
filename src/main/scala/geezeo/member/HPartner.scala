@@ -49,13 +49,15 @@ import
 // time it will take for a full harvest
 // quiet hours
 // ErrorStrategy might belong here
-case class Strategy(cycle: Period, quietHoursStart: LocalDateTime, quierHoursStop: LocalDateTime)
+case class Strategy(cycle: Period, quietHoursStart: LocalDateTime, quierHoursStop: LocalDateTime, rate: Rate)
+case class Rate() // n / timerange
 
 // HUser and HAccouts are representations of what has been harvested
 case class HUser(accountIds: Traversable[Int], hEndpointResponse: String, userId: Int)
+
 object HUser {
   def apply(userId: Int) = {
-    new HUser(Set(), "test.com", userId)
+    new HUser(Set(), "<XML></XML>", userId)
   }
 }
 

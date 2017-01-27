@@ -8,13 +8,12 @@ import
     Actor,
     ActorLogging
   },
-  // akka.persistence.PersistentActor,
   org.joda.time.{
     Instant,
     DateTime
   }
 
-class EventRouter() extends Actor with ActorLogging {
+class EventRouter extends Actor with ActorLogging {
 
   import 
     Actor.Receive,
@@ -36,35 +35,36 @@ class EventRouter() extends Actor with ActorLogging {
       become(request(hRequest))
     }
   }
-
-  // FSM please
-  // the states need to be more than strings
+  
+  // TODO
+  // replace state strings with case classes
   def lifecycle(event: HLifeCycleEvent): Receive = {
     case enqueue: HEnqueue => {
       val state   = "enqueue"
-      val message = s"Harvest Enqueue: ${nowDateTime.toString}"
+      val message = stateMessage("Harvest Enqueue:")
       
       eventDetail(event, message, state)
     }
     case fail: HFailed => {
       val state   = "failed"
-      val message = s"Harvest Failed: ${nowDateTime.toString}"
+      val message = stateMessage("Harvest Failed:")
       
       eventDetail(event, message, state)
     }
     case finish: HFinished => {
       val state   = "finished"
-      val message = s"Harvest Finished: ${nowDateTime.toString}"
+      val message = stateMessage("Harvest Finished:")
       
       eventDetail(event, message, state)
     }
     case start: HStarted => {
       val state   = "started"
-      val message = s"Harvest Started: ${nowDateTime.toString}"
+      val message = stateMessage("Harvest Started:")
       
       eventDetail(event, message, state)
     }
   }
+  
   def request(event: HRequest): Receive = {
     case HSchedule(endpoint, harvestAt, userId) => {
       val uuid      = UUID.get
@@ -77,6 +77,7 @@ class EventRouter() extends Actor with ActorLogging {
       log.info(s"Scheduling a harvest at: ${timeStamp}")
     }
   }
+
   // FSM please
   def scheduler(event: HSchedulerEvent): Receive = {
     case _ => println("scheduler event.")
@@ -92,13 +93,17 @@ object UUID {
 object EventRouter extends Routing {
   
   import
-    harvester.nowDateTime,
+    harvester.{ fmtDateTime, nowDateTime },
     members.{
       Endpoint,
       HUser
     }
   
-  def props = {
+  def newStateMessage(m: String) = {
+    s"${m} ${fmtDateTime(nowDateTime)}"
+  }
+
+  def props(implicit as: ActorSystem) = {
     import akka.actor.Props
 
     Props(new EventRouter)

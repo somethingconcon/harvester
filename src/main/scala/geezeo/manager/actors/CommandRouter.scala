@@ -8,7 +8,6 @@ import
     Actor,
     ActorLogging
   },
-  // akka.persistence.PersistentActor,
   org.joda.time.{
     Instant,
     DateTime
@@ -27,24 +26,30 @@ class CommandRouter() extends Actor with ActorLogging {
     
   def receive = {
     case hCommand: HCommand => { 
-      println("command event:" + hCommand.toString) //ewww
+      println("harvest command event:" + hCommand.toString) //ewww
+    }
+    case sCommand: SCommand => {
+      println("scheduler command event:" + sCommand.toString) //ewww
     }
   }
 }
 
 object CommandRouter {
 
- def props = {
+  def props(implicit as: ActorSystem) = {
     import akka.actor.Props
 
     Props(new CommandRouter)
   }
-  trait HCommand
-  case class WorkerCommand()           extends HCommand
-  case class WarnEndpointCommand()     extends HCommand
-  case class DownEndpointCommand()     extends HCommand
-  case class TimeoutEndpointCommand()  extends HCommand
-  case class SlowEndpointRateCommand() extends HCommand
-  case class FastEndpointRateCommand() extends HCommand
 
+  trait HCommand // HarvestCommand
+  case class WorkerCommand()               extends HCommand
+  case class WarnEndpointCommand()         extends HCommand
+  case class DownEndpointCommand()         extends HCommand
+  case class TimeoutEndpointCommand()      extends HCommand
+  case class SlowdownEndpointRateCommand() extends HCommand
+  case class SpeedUpEndpointRateCommand()  extends HCommand
+
+  trait SCommand // SchedulerCommand
+  case class RateCommand()                 extends SCommand
 }

@@ -1,7 +1,7 @@
 package members 
 
 
-case class Endpoint(core: Core, downtime: Boolean, maxOpenConnections: ConnectionLimiter, url: String)
+case class Endpoint(core: Core, downtime: Boolean, connectionLimiter: ConnectionLimiter, url: URI)
 
 trait Core
 case class Geezeo() extends Core

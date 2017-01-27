@@ -10,6 +10,7 @@ package object harvester {
       Logging,
       LoggingAdapter
     },
+    com.typesafe.config._,
     org.joda.time.format.DateTimeFormat,
     org.joda.time.{
       DateTime,
@@ -41,6 +42,11 @@ package object harvester {
   //   }
   //   .recover { case ex => logger.error(ex, "Could not start HTTP server") }
   
+  // this method is only meant for gathering partners as the app starts up
+  def startPartners(config: Config)(implicit context: ActorContext) = {
+    config.atNode("partners")
+  }
+
   class HLogger(logAdapter: LoggingAdapter) {
     import Logging._
     
@@ -87,12 +93,12 @@ package object harvester {
 
   object HMonitor {
 
-    case class SystemData(freeMemory: Long, maxMemory: Long, totalMemory: Long, usedMemory: Long)
+    case class SystemData(freeMemory: Long, 
+                           maxMemory: Long, 
+                         totalMemory: Long, 
+                          usedMemory: Long,
+                                time: Instant)
 
-    def now = {
-      import org.joda.time.Instant
-      new Instant()
-    }
 
     def systemData = { // memory info
       
@@ -103,12 +109,7 @@ package object harvester {
       val max   = runtime.maxMemory / mb
       val total = runtime.totalMemory / mb
 
-      HLogger.log("** Used Memory:  " + used)
-      HLogger.log("** Free Memory:  " + free)
-      HLogger.log("** Total Memory: " + total)
-      HLogger.log("** Max Memory:   " + max)
-
-      SystemData(free, used, max, total)
+      SystemData(free, used, max, total, nowInstant)
     }
   }
 }

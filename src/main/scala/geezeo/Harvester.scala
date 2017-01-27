@@ -19,9 +19,7 @@ object Havester extends App {
   implicit val hlog   = HLogger.apply
 
   // HarvestManager is a router to delegate requests
-  val routingManager = system.actorOf(Router.props, "RoutingManager")
+  val router = system.actorOf(Router.props, "RoutingManager")
   
-  while (true) {
-
-  }
+  startPartners(config)
 }

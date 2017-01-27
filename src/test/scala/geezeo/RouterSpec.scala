@@ -26,7 +26,7 @@ import
   },
   concurrent.duration._
 
-class ManagerSpec() extends TestKit(ActorSystem("ManagerSpec")) 
+class RouterSpec() extends TestKit(ActorSystem("RouterSpec")) 
                     with WordSpecLike
                     // with MockFactory
                     with ImplicitSender
@@ -35,9 +35,9 @@ class ManagerSpec() extends TestKit(ActorSystem("ManagerSpec"))
   
   import
     harvester.manager.actors.Router,
-    ManagerSpec._
+    RouterSpec._
 
-  val router      = TestActorRef[Router]
+  val router      = TestActorRef(new Router)
   val routerActor = router.underlyingActor
   
   override def afterAll {
@@ -50,12 +50,12 @@ class ManagerSpec() extends TestKit(ActorSystem("ManagerSpec"))
     import harvester.manager.actors.Router._
 
     "forward HarvestEvent messages to the EventRouter" in {
-      val probe = TestProbe()
-      (routerActor.getChild _).expects(EventRouting(), Option(probe))  
+
+      val eventRouter = routerActor.getRouter(EventRouting())  
       
       within(timeout) {
         router ! hEvent
-        routerActor.getChild(EventRouting()).map { 
+        eventRouter.map { 
           _.expectMsg(hEvent)
         }
       }
@@ -67,7 +67,7 @@ trait ActorSpec {
   val config: String
 }
 
-object ManagerSpec extends ActorSpec {
+object RouterSpec extends ActorSpec {
   
   // Define your test specific configuration here
   
@@ -81,7 +81,8 @@ object ManagerSpec extends ActorSpec {
       loglevel = "WARNING"
     }
     """
-  val hEvent =  new HLifeCycleEvent {
+  
+  val hEvent = new HLifeCycleEvent {
     val harvest = new Harvest(1, "id", HUser(1))
     val at      = new DateTime()
   }
