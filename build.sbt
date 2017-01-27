@@ -6,7 +6,7 @@ lazy val root = (project in file(".")).settings(
   version := "0.0.1-SNAPSHOT",
 
   credentials += Credentials(
-    host     = "bob-the-builder.geezeo.com",
+    host     = sys.env("IVY2_HOST"),
     passwd   = sys.env("IVY2_PASSWORD"),
     realm    = "Repository Archiva Managed geezeo Repository",
     userName = sys.env("IVY2_USER")),

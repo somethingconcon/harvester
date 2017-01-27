@@ -6,20 +6,32 @@ import
     Actor,
     ActorLogging },
   com.typesafe.config._,
-  harvester.manager.actors.Router
+  harvester.manager.actors.Router,
+  harvester.scheduler.Scheduler,
+  monix.execution.schedulers.AsyncScheduler
 
 object Havester extends App {
   
   import harvester._
-
-  val config = ConfigFactory.load
+  
+  val systemSettings = ConfigFactory.systemProperties
+  val config         = getConfig
+  
+  def getConfig = {
+    if (args.size == 0) {
+      ConfigFactory.load
+    } else {
+      throw new Error("Cannot start application with params.")
+    }
+  }
   
   // setup Actor System
-  implicit val system = ActorSystem("Scheduler", config)
-  implicit val hlog   = HLogger.apply
-
+  implicit val system = ActorSystem("Harvester", config)
   // HarvestManager is a router to delegate requests
-  val router = system.actorOf(Router.props, "RoutingManager")
+  val router    = system.actorOf(Router.props, "RoutingManager")
+  val scheduler = system.actorOf(Scheduler.props, "Scheduler")
+  // This is the object we're going to attach events to
+  // val scheduler = new AsyncScheduler()
   
-  startPartners(config)
+  startPartners(config, scheduler)
 }

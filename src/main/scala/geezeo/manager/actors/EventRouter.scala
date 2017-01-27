@@ -23,7 +23,10 @@ class EventRouter extends Actor with ActorLogging {
       getActorRef,
       nowDateTime
     }
-    
+
+  // routing is for managing events that happen outside 
+  // of the application
+  // internal messages go directly to the actors necessary
   def receive = {
     case hLifeCycleEvent: HLifeCycleEvent => { 
       become(lifecycle(hLifeCycleEvent))
@@ -99,7 +102,7 @@ object EventRouter extends Routing {
       HUser
     }
   
-  def newStateMessage(m: String) = {
+  def stateMessage(m: String) = {
     s"${m} ${fmtDateTime(nowDateTime)}"
   }
 

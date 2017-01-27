@@ -3,6 +3,7 @@ package object harvester {
   import 
     akka.actor.{
       ActorContext,
+      ActorRef,
       ActorSystem,
       Props
     },
@@ -15,9 +16,12 @@ package object harvester {
     org.joda.time.{
       DateTime,
       Instant
-    }
+    },
+    scala.concurrent.duration.DurationInt,
+    scala.language.postfixOps
 
-  val dateTimeFmt = DateTimeFormat.forPattern("dd-M-yyyy;H:m:s");
+  val dateTimeFmt = DateTimeFormat.forPattern("dd-M-yyyy:H:m:s")
+  val timeout     = 1000 millis
 
   def fmtDateTime(dt: DateTime) = {
     dt.toString(dateTimeFmt)
@@ -43,52 +47,36 @@ package object harvester {
   //   .recover { case ex => logger.error(ex, "Could not start HTTP server") }
   
   // this method is only meant for gathering partners as the app starts up
-  def startPartners(config: Config)(implicit context: ActorContext) = {
-    config.atNode("partners")
-  }
-
-  class HLogger(logAdapter: LoggingAdapter) {
-    import Logging._
+  def startPartners(config: Config, hScheduler: ActorRef)(implicit as: ActorSystem) = {
     
-    def debug(d: AnyRef) = {
-      logAdapter.debug(d.toString)
-    }
+    import
+      as._,
+      scala.collection.JavaConversions._,
+      members.Endpoint
 
-    def error(d: AnyRef) = {
-      logAdapter.error(d.toString)
-    }
+    // getConfigList
+    val partners = config.getObject("partners").map { case (key, partnerHarvestConf) =>
+      val partnerName = key
+      // check this shit
+      val endpointsConf = partnerHarvestConf.atPath("endpoints").atKey("endpoints")
+      val harvestEndpoints = endpointsConf.getObjectList("endpoints").map { endpoint => 
+        Endpoint.build(endpoint)
+      }
 
-    def info(d: AnyRef) = {
-      import Logging.LogLevel
-      
-      logAdapter.info(d.toString)
-    }
-
-    def log(d: AnyRef) = {
-      logAdapter.log(LogLevel(1), d.toString)
-    }
-
-    def warn(d: AnyRef) = {
-      logAdapter.warning(d.toString)
-    }
-
-  }
-
-  object HLogger {
-
-    import akka.event.{
-      Logging,
-      LoggingAdapter
-    }
-
-    var logger: HLogger = _
-
-    def apply(implicit as: ActorSystem) = {
-     logger = new HLogger(as.log)
+      // val harvestStrat = strategy.HStrategy.build(partnerHarvestConf.getString("strategy"))
+      val harvestStrat = strategy.HStrategy.build("fixed")
+      new members.HPartner(partnerName) {
+        val endpoints = harvestEndpoints
+        val strategy  = harvestStrat
+      }
     }
     
-    def log = logger.info _
-
+    import harvester.manager.actors.Partner
+    
+    partners.foreach { hPartner => 
+      val partnerActor = actorOf(Partner.props(hPartner, hScheduler))
+      partnerActor ! harvester.manager.actors.Partner.Start()
+    }
   }
 
   object HMonitor {
@@ -99,15 +87,14 @@ package object harvester {
                           usedMemory: Long,
                                 time: Instant)
 
-
     def systemData = { // memory info
       
-      val mb = 1024*1024
+      val mb      = 1024*1024
       val runtime = Runtime.getRuntime
-      val free  = runtime.freeMemory / mb
-      val used  = (runtime.totalMemory - runtime.freeMemory) / mb
-      val max   = runtime.maxMemory / mb
-      val total = runtime.totalMemory / mb
+      val free    = runtime.freeMemory / mb
+      val used    = (runtime.totalMemory - runtime.freeMemory) / mb
+      val max     = runtime.maxMemory / mb
+      val total   = runtime.totalMemory / mb
 
       SystemData(free, used, max, total, nowInstant)
     }

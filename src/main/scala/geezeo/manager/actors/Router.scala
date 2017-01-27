@@ -19,10 +19,10 @@ class Router(implicit as: ActorSystem) extends Actor with ActorLogging with Rout
       nowDateTime },
     harvester.manager.actors.CommandRouter.HCommand,
     harvester.manager.actors.EventRouter.HEvent,
-    scala.collection.mutable,
+    scala.collection.mutable.{ Map => MMap },
     Router._
   
-  val children = mutable.Map[RoutingType, ActorRef]()
+  val children = MMap[RoutingType, ActorRef]()
 
   def getRouter(t: RoutingType) = children.get(t)
   
@@ -46,6 +46,10 @@ class Router(implicit as: ActorSystem) extends Actor with ActorLogging with Rout
     case event: HEvent => {
       getRouter(EventRouting()).map { eventer => eventer ! event }
     }
+    case message: String => {
+      log.info(harvester.HMonitor.systemData.toString)
+      log.info(message)
+    }
   }
 }
 
@@ -63,9 +67,11 @@ object Router {
   trait RoutingType
   case class CommandRouting() extends RoutingType
   case class EventRouting()   extends RoutingType
+  case class MessageRouting() extends RoutingType
 
 }
 
+// fake bullshit for persistence stuff
 trait Routing {
   def dao = new Dao { def events = new Client() }
 }

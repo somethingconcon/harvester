@@ -14,20 +14,21 @@
   
   * to get, and manage a collection of users to harvest (get and also update data without
     restarting the application).
-  * select a user and collection of users to harvest next
+  * select a collection of users to harvest next
   * an association to the partner's endpoint for healthchecks and stream control
 
   Persist to a place where we can retrieve
 */
 package members 
 
-abstract class HPartner(downtime: Boolean, partnerId: Int) {
+abstract class HPartner(partnerName: String) {
   
   import HPartner._
   
-  val harvestEndpoints: Set[Endpoint]
-  val harvestStrategy:  Strategy
-  val users:            Seq[HUser] // average harvest time, number of accounts for HarvestUser
+  // val endpoints: Set[Endpoint]
+  // val strategy:  Strategy
+  // this can be handled by the current cycle
+  // val users:            Seq[HUser] // average harvest time, number of accounts for HarvestUser
 
 }
 
@@ -38,26 +39,23 @@ object HPartner {
   // maxOpenConnections
   // url
   // Time Events
+  def apply(partnerName: String) = new HPartner(partnerName) {
 
+  }
 }
 
 import 
   org.joda.time.{
+    Interval,
     LocalDateTime,
     Period }
-    
-// time it will take for a full harvest
-// quiet hours
-// ErrorStrategy might belong here
-case class Strategy(cycle: Period, quietHoursStart: LocalDateTime, quierHoursStop: LocalDateTime, rate: Rate)
-case class Rate() // n / timerange
 
 // HUser and HAccouts are representations of what has been harvested
-case class HUser(accountIds: Traversable[Int], hEndpointResponse: String, userId: Int)
+case class HUser(accountIds: Traversable[Int], userId: Int)
 
 object HUser {
   def apply(userId: Int) = {
-    new HUser(Set(), "<XML></XML>", userId)
+    new HUser(Set[Int](), userId)
   }
 }
 
