@@ -46,28 +46,34 @@ package object harvester {
   //   }
   //   .recover { case ex => logger.error(ex, "Could not start HTTP server") }
   
-  // this method is only meant for gathering partners as the app starts up
-  def startPartners(config: Config, hScheduler: ActorRef)(implicit as: ActorSystem) = {
+  /** 
+    this method is only meant for gathering partners as the app starts up
+  */
+  def start(config: Config, hScheduler: ActorRef)(implicit as: ActorSystem) = {
     
     import
       as._,
-      scala.collection.JavaConversions._,
-      members.Endpoint
+      scala.collection.JavaConverters._,
+      members.Endpoint,
+      strategy.HStrategy.{ 
+        build => buildStrat }
 
-    // getConfigList
-    val partners = config.getObject("partners").map { case (key, partnerHarvestConf) =>
-      val partnerName = key
-      // check this shit
-      val endpointsConf = partnerHarvestConf.atPath("endpoints").atKey("endpoints")
-      val harvestEndpoints = endpointsConf.getObjectList("endpoints").map { endpoint => 
-        Endpoint.build(endpoint)
+    val partners        = config.getObject("partners").entrySet.asScala.map { partner =>
+
+      val partnerName   = partner.getKey
+      val partnerConfig = partner.getValue.atKey("partner")
+      val strategyVal   = partnerConfig.getString("partner.strategy")
+      val endpoints_    = partnerConfig.getList("partner.endpoints")
+                                       .listIterator.asScala
+                                       .toSet
+                                       .map { endpoint: ConfigValue => 
+        
+        Endpoint.build(endpoint.atPath("endpoint"))
       }
 
-      // val harvestStrat = strategy.HStrategy.build(partnerHarvestConf.getString("strategy"))
-      val harvestStrat = strategy.HStrategy.build("fixed")
       new members.HPartner(partnerName) {
-        val endpoints = harvestEndpoints
-        val strategy  = harvestStrat
+        val endpoints   = endpoints_
+        val strategy    = buildStrat(strategyVal)
       }
     }
     
@@ -81,13 +87,21 @@ package object harvester {
 
   object HMonitor {
 
-    case class SystemData(freeMemory: Long, 
-                           maxMemory: Long, 
-                         totalMemory: Long, 
-                          usedMemory: Long,
-                                time: Instant)
+    case class SystemMemory(free: Long, 
+                             max: Long, 
+                           total: Long, 
+                            used: Long,
+                            time: Instant) { 
+      import SystemMemory.fmt
+      override def toString = fmt(this) }
 
-    def systemData = { // memory info
+    object SystemMemory {
+      def fmt(memory: SystemMemory) = {
+        s"Total:${memory.total} Free:${memory.free} Max:${memory.max} Used:${memory.used}"
+      }
+    }
+
+    def systemMemory = {
       
       val mb      = 1024*1024
       val runtime = Runtime.getRuntime
@@ -96,7 +110,7 @@ package object harvester {
       val max     = runtime.maxMemory / mb
       val total   = runtime.totalMemory / mb
 
-      SystemData(free, used, max, total, nowInstant)
+      new SystemMemory(free, used, max, total, nowInstant)
     }
   }
 }

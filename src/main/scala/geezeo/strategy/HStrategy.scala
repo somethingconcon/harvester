@@ -5,7 +5,7 @@ import
     Interval
   }
 
-trait HStrategy {
+sealed trait HStrategy {
   val cycle: Interval
   // val rate: Rate // huh where does this go?
 }
@@ -24,7 +24,6 @@ object HStrategy {
     case dunno     => throw new StrategyError(s"Cannot create strategy from ${dunno}")
   }
 
-  //FIXME this is completely wrong
   def build(strat: String) = {
     apply(new Interval(1000, 2000), strat)
   }

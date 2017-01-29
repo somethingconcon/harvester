@@ -33,5 +33,5 @@ object Havester extends App {
   // This is the object we're going to attach events to
   // val scheduler = new AsyncScheduler()
   
-  startPartners(config, scheduler)
+  start(config, scheduler)
 }

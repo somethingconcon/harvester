@@ -6,8 +6,8 @@ import
     ConfigValue
   },
   org.joda.time.{
-    Duration,
-    Interval
+    Period,
+    Seconds
   }
 
 case class Endpoint(core: Core, 
@@ -19,36 +19,55 @@ case class Endpoint(core: Core,
 
 object Endpoint {
   import com.typesafe.config.Config
-  
-  def build(endpointConfig: Config) = {
-    
-    val core = Core(endpointConfig.getString("core"))
-    val rate = Rate(endpointConfig.getString("rate")) // getDuration(java.lang.String path, java.util.concurrent.TimeUnit unit)
-    val url  = endpointConfig.getString("url")
 
-    new Endpoint(core, rate, url)
+  def build(conf: Config) = {
+    Builder(conf)
   }
 
-  def build(endpointConfig: ConfigValue) = {
-    new Endpoint(Geezeo(), Rate("poo"), "localhost:8089")
+  object Builder {
+    def apply(conf: Config) = {
+      val core = Core(conf.getString("endpoint.core"))
+      val rate = Rate(conf.getString("endpoint.rate"))
+      val url  = conf.getString("endpoint.url")
+
+      new Endpoint(core, rate, url)
+    }
   }
 }
-// Not really sure if duration is correct here
-case class Rate(x: Int, per: Duration) {
-  val normalizeTo = {
-    "poo"  //FIXME
-  }
+trait Limiter {
+  val maxConnections: Int
 }
+
+/**
+  Move these suckers 
+*/
+case class Rate(num: Int, limiter: Limiter, per: Period)
 
 object Rate {
-  def apply(rateConfig: String) = {
-    new Rate(20, new Duration(1000))
+  def apply(conf: String) = {
+    Builder(conf.split(" ", 2))
+  }
+
+  object Builder {
+    def apply(conf: Array[String]) = {
+      val rateParts  = conf.head.split("/")
+      val limit       = conf.tail.head.split(" ").head.toInt
+      val interval   = new Period(Seconds.seconds(rateParts.last.toInt))
+      val limiter_   = new Limiter { val maxConnections = limit }
+      
+      new Rate(conf.head.toInt, limiter_, interval)
+    }
   }
 }
 
 trait Core
+case class Geezeo() extends Core
+case class FiServ() extends Core
+case class Q2()     extends Core
+case class Ofx()    extends Core
+
 object Core {
-  def apply(coreName: String) = coreName match {
+  def apply(coreType: String) = coreType match {
     case "geezeo" => Geezeo()
     case "fiserv" => FiServ()
     case "q2"     => Q2()
@@ -56,9 +75,3 @@ object Core {
     case _        => throw new Error("Cannot determine CORE.")
   }
 }
-case class Geezeo() extends Core
-case class FiServ() extends Core
-case class Q2()     extends Core
-case class Ofx()    extends Core
-
-trait Limiter

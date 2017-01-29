@@ -6,8 +6,8 @@ import akka.actor.{
   Actor,
   ActorLogging,
   Props
-},
-akka.persistence.PersistentActor
+}// ,
+// akka.persistence.PersistentActor
 
 class Router(implicit as: ActorSystem) extends Actor with ActorLogging with Routing {
   
@@ -16,7 +16,9 @@ class Router(implicit as: ActorSystem) extends Actor with ActorLogging with Rout
     harvester.{
       fmtDateTime,
       getActorRef,
-      nowDateTime },
+      nowDateTime,
+      HMonitor },
+    HMonitor._,
     harvester.manager.actors.CommandRouter.HCommand,
     harvester.manager.actors.EventRouter.HEvent,
     scala.collection.mutable.{ Map => MMap },
@@ -47,16 +49,14 @@ class Router(implicit as: ActorSystem) extends Actor with ActorLogging with Rout
       getRouter(EventRouting()).map { eventer => eventer ! event }
     }
     case message: String => {
-      log.info(harvester.HMonitor.systemData.toString)
+      log.info(systemMemory.toString)
       log.info(message)
+      log.info("not doing anything")
     }
   }
 }
 
 object Router {
-
-  import 
-    harvester.nowDateTime
   
   def props(implicit as: ActorSystem) = {
     import akka.actor.Props

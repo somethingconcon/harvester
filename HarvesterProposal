@@ -1,0 +1,93 @@
+Title: Flavortown Proposal Series 
+
+Item: Harvester a.k.a. The FlavorSavior a.k.a Danny Wegmans
+
+Purpose: This application is built strictly for scheduling harvest jobs based on what I've 
+called a Harvest Strategy, which I'll refer to as just Harvest in this proposal. The details are available in the Harvest Strategy section below. Beyond the scope of strictly scheduling harvest jobs we wish to bring the ability to do in depth monitoring to our harvest process.
+
+Business Details: Allow for logging and stats tracking to provide insights into the harvest process from start to finish.  Partner request building, wire time, response parsing are all details which I hope to capture.
+
+Technical Details: The current strategy for harvests in OG is build an array of users which 
+has been randomized based on the Ruby #shuffle method.  That number is then divided 
+
+Harvest Strategy: ## Breakdown the algo and cycle of the cluster
+
+endpoint responses:
+  
+  Alliant:
+    119ms
+    RESP. TIME
+    1,285cpm
+    THROUGHPUT
+
+  Cash Edge: 
+    596ms
+    RESP. TIME 
+    543cpm
+    THROUGHPUT
+  
+  Commonwealth:
+    2,390ms
+    RESP. TIME
+    36cpm
+    THROUGHPUT
+
+  FiServ
+    1,050ms
+    RESP. TIME
+    96cpm
+    THROUGHPUT
+
+  Malauzai
+    1,060ms
+    RESP. TIME
+    56cpm
+    THROUGHPUT
+
+  www.myebanking.net
+    223ms
+    RESP. TIME
+    326cpm
+    THROUGHPUT
+
+  Veridian:
+    2,300ms
+    RESP. TIME
+    273cpm
+    THROUGHPUT
+
+  Suncoast:
+    264ms
+    RESP. TIME
+    865cpm
+    THROUGHPUT
+
+  Wings:
+    142ms
+    RESP. TIME
+    302cpm
+    THROUGHPUT
+
+
+  Home Banking homebanking.r1cu.org?:
+    1,960ms
+    RESP. TIME
+    124cpm
+    THROUGHPUT
+  
+  Home Banking homebanking.hiway.org?:
+    2,090ms
+    RESP. TIME
+    60cpm
+    THROUGHPUT
+  
+  Home Banking homebanking.oefcu.org?:
+    2,090ms
+    RESP. TIME
+    54cpm
+    THROUGHPUT
+
+
+
+
+
