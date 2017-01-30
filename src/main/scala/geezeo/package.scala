@@ -27,7 +27,7 @@ package object harvester {
     dt.toString(dateTimeFmt)
   }
   // where should this go?
-  def getActorRef(props: Props, name: String)(implicit context: ActorContext) = {
+  def getActorRef(props: Props, name: String)(implicit context: ActorContext, dao: Dao) = {
     context.actorOf(props, name)
   }
   
@@ -77,13 +77,20 @@ package object harvester {
       }
     }
     
-    import harvester.manager.actors.Partner
+    import 
+      harvester.manager.actors.Partner // access to the Partner's Protocol 
     
     partners.foreach { hPartner => 
-      val partnerActor = actorOf(Partner.props(hPartner, hScheduler))
-      partnerActor ! harvester.manager.actors.Partner.Start()
+      val partnerActor = actorOf(Partner.props(hPartner, hScheduler), name = s"Partner-${hPartner.name}")
+      partnerActor ! Partner.Start()
     }
   }
+
+  trait Dao {
+    def primary: Dal
+  }
+  class Dal(client: Client)
+  class Client { def write(d: Any) = println("write"); def delete(d: Any) = println("delete") }
 
   object HMonitor {
 

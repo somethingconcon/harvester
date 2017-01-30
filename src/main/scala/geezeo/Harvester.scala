@@ -25,8 +25,11 @@ object Havester extends App {
     }
   }
   
-  // setup Actor System
   implicit val system = ActorSystem("Harvester", config)
+  implicit val dao    = new Dao { 
+    def primary = new Dal(new Client)
+  }
+
   // HarvestManager is a router to delegate requests
   val router    = system.actorOf(Router.props, "RoutingManager")
   val scheduler = system.actorOf(Scheduler.props, "Scheduler")

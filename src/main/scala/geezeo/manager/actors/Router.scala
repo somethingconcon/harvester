@@ -9,7 +9,7 @@ import akka.actor.{
 }// ,
 // akka.persistence.PersistentActor
 
-class Router(implicit as: ActorSystem) extends Actor with ActorLogging with Routing {
+class Router(implicit as: ActorSystem, dao: Dao) extends Actor with ActorLogging with Routing {
   
   // event classes need to be centralized 
   import
@@ -70,12 +70,7 @@ object Router {
   case class MessageRouting() extends RoutingType
 
 }
-
-// fake bullshit for persistence stuff
+import harvester.Dao
 trait Routing {
-  def dao = new Dao { def events = new Client() }
+  def dao: Dao
 }
-trait Dao {
-  def events: Client
-}
-class Client { def write(d: Any) = println("write"); def delete(d: Any) = println("delete") }

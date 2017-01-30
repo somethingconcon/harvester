@@ -43,25 +43,43 @@ class Partner(harvestPartner: HPartner, harvestScheduler: ActorRef) extends Acto
   var pauseUntil: DateTime = _
 
   override def preStart() = {
+    import scala.util.{
+      Failure,
+      Success
+    }
     // make this a blocking call solution
     // so it will fail if a partner cannot
     // be attached to the scheduler
     // case Registered() => { registered = true; println("registered") }
-    Await.result(regsiterPartnerToScheduler, harvester.timeout)
+    regsiter.onComplete {
+      case Success(registerAskResponse) => { 
+        setRegistered(true)
+      }
+      case Failure(ex)                  => { 
+        setRegistered(false)
+        // retry?
+        throw new Exception(s"Cannot start Partner Actor ${harvestPartner.name}")
+      }
+    }
   }
 
   def receive = {
     case Next    (numberOfUsers) => next(numberOfUsers)
     case Throttle(limit)         => println("throttle")
     case Pause   (delay)         => println("pause")
+    case Start()                 => cycle
   }
 
-  private def next(numberOfUsers: Int): Unit = {
+  private def cycle = {
+    harvestPartner.cycle
+  }
+
+  private def next(numberOfUsers: Option[Int]): Unit = {
     println("next")
     val notPaused = true //FIXME
 
     if(registered && notPaused) {
-      schedule(Option(numberOfUsers))
+      schedule(numberOfUsers)
     } else {
       error("called next but cannot deliver new batch of users.")
     }
@@ -70,6 +88,14 @@ class Partner(harvestPartner: HPartner, harvestScheduler: ActorRef) extends Acto
   private def pause(delay: Duration) = {
     // nowInstant + delay
     // scheduler ! UnpauseAt()
+  }
+
+  private def setRegistered(r: Boolean): Unit = {
+    if(r) {
+
+    } else {
+
+    }
   }
 
   private def schedule(numberOfUsers: Option[Int]): Unit = {
@@ -96,20 +122,10 @@ class Partner(harvestPartner: HPartner, harvestScheduler: ActorRef) extends Acto
     harvestScheduler ! Request(activeCycle.next)
   }
 
-  private def regsiterPartnerToScheduler = {
+  private def regsiter = {
     import 
-      akka.pattern.ask,
-      scala.util.{
-        Failure,
-        Success
-      }
+      akka.pattern.ask
     
-    // val registerAsk = harvestScheduler ? Register(self)
-    
-    // registerAsk.onComplete {
-    //   case Success(registeredMessage) => { registered = true }
-    //   case Failure(ex)                => { registered = false }
-    // }
     harvestScheduler ? Register(self)
   }
 
@@ -121,10 +137,17 @@ object Partner {
     org.joda.time.Duration,
     members.HUser
 
+  /*
+    It has been recommended that communication protols are centralized so that
+    they can be easily identified.
+
+    If that's the case I need to move these into an object that contains all 
+    messages that the system's actors can send to each other.
+  */
   case class CycleComplete()
   // the size attribute should be something
   // we can do more with
-  case class Next(size: Int)
+  case class Next(size: Option[Int])
   case class Pause(duration: Duration)
   case class Register(partner: ActorRef)
   case class Registered()

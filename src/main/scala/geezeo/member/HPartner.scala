@@ -14,31 +14,31 @@
   
   * to get, and manage a collection of users to harvest (get and also update data without
     restarting the application).
-  * select a collection of users to harvest next
   * an association to the partner's endpoint for healthchecks and stream control
 
   Persist to a place where we can retrieve
 */
 package members 
 
-abstract class HPartner(partnerName: String) {
+abstract class HPartner(val name: String) {
   
-  import HPartner._
-  
+  import 
+    HPartner._,
+    scala.collection.mutable.{
+      Queue => MQueue
+    }
   // val endpoints: Set[Endpoint]
   // val strategy:  Strategy
   // this can be handled by the current cycle
-  // val users:            Seq[HUser] // average harvest time, number of accounts for HarvestUser
-
+  
+  val users: MQueue[HUser] // average harvest time, number of accounts for HarvestUser
+  def cycle = {
+    users.clear
+    users ++= dao.users.getHarvestUsers
+  }
 }
 
 object HPartner {
-
-  // endpoint type
-  // downtime in effect?
-  // maxOpenConnections
-  // url
-  // Time Events
   def apply(partnerName: String) = new HPartner(partnerName) {
 
   }

@@ -14,10 +14,11 @@ class Scheduler() extends Actor with ActorLogging {
   
   import Partner.{
     Register,
-    Request
+    Request,
+    Start
   }
   
-  var partners = Set[ActorRef]()
+  var partners = Set[ActorRef]() // change this to a val and use a mutable collection
   var max      = 0
   var inflight = 0
 
@@ -28,6 +29,7 @@ class Scheduler() extends Actor with ActorLogging {
 
   private def register(partner: ActorRef) = {
     partners += partner
+    partner ! Start()
   }
   private def getHarvestQueueSize = 0
 }
